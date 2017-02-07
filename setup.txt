@@ -1,0 +1,8 @@
+moverse al directorio de trabajo
+desde ahí:
+
+C:\Python33\python.exe -m http.server
+
+Luego ir a la página 
+
+localhost:8000

@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Slam!</title>
+        <script src="phaser.min.js"></script>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+
+
+
+        var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+
+        function preload () {
+
+            game.load.image('sky', 'Assets/Images/sky.png');
+            game.load.image('ground', 'Assets/Images/ground.png');
+            game.load.image('casa','Assets/Images/casa.png');
+            game.load.spritesheet('gato', 'Assets/Images/gaticho.png', 150, 144); // Hay que ajustar tamaño y diseñar sprites
+            game.load.spritesheet('cuca', 'Assets/Images/cuca.png', 97, 130); // Hay que ajustar tamaño y diseñar sprites
+
+        }//ends preload
+
+	var platforms; //just some plats. Not sure why we have to declare this :P
+	var player; //guess I have an idea why...
+	var enemies;
+	var sky;
+	var ground;
+	
+    function create () {
+
+	// Enable Arcade Physics
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+
+	// Load Background
+	sky = game.add.tileSprite(0, 0, 800, 600, 'sky');
+	sky.fixedToCamera = true;
+
+    //  set world boundaries
+	game.world.setBounds(0, 0, 800, 600);
+	casa = game.add.tileSprite(game.world.width/2 - 350, game.world.height - 460, 700, 400, 'casa');
+	// Load ground
+	platforms = game.add.group();
+	platforms.enableBody = true;
+
+	ground = platforms.create(0 , game.world.height - 60, 'ground');
+	ground.scale.setTo(2, 2);
+
+    // Fix ground to game world
+	ground.body.immovable = true;
+
+    //Create enemies group
+	enemies = game.add.group();
+	enemies.enableBody = true;
+	
+
+	for (var i = 1; i < 8; i++) {
+	    var cuca = enemies.create(i * 90, 210, 'cuca');
+	    
+	    cuca.body.gravity.y = 800;
+	    cuca.body.bounce.y = 0.8 + Math.random() * 0.2
+	    cuca.body.collideWorldBounds = true;
+	}
+
+
+
+
+/*
+    // Add blocks
+	var block = platforms.create(500, game.world.height - 200, 'block');
+	block.body.immovable = true;
+
+    // Add coins
+	coin1 = game.add.sprite(700, game.world.height - 300, 'coin');
+	game.physics.arcade.enable(coin1);
+*/
+	
+	//  Add Player
+	player = game.add.sprite(32, game.world.height - 200, 'gato');
+	player.scale.setTo(1, 1);
+
+	//  Enable Player Physics 
+	game.physics.arcade.enable(player);	
+
+	//  Physic properties
+	player.body.bounce.y = 0.1;
+	player.body.gravity.y = 900;
+	player.body.collideWorldBounds = true;
+
+    //  Walking animations 	
+	//player.animations.add('left', [0, 1, 2], 10, true);
+	//player.animations.add('right', [3, 4, 5], 10, true);
+
+    // Add enemies. Must've written a createKuribo function or constructor, I know. Time was not my friend (u_u)
+    /*    
+	enemies = game.add.group();
+	enemies.enableBody = true;
+	//enemies.physicsBodyType = Phaser.Physics.ARCADE;
+	game.physics.arcade.enable(enemies);*/
+
+    /*
+    //kuribo ----------------------------------------------------------
+	kuribo = game.add.sprite(500, game.world.height - 300, 'kuribo');
+	kuribo.scale.setTo(1, 1);
+
+	//  Enable Enemy Physics
+	game.physics.arcade.enable(kuribo);	
+
+	//  Physic properties (enemy)
+	kuribo.body.bounce.y = 0.4;
+	kuribo.body.gravity.y = 800;
+	kuribo.body.collideWorldBounds = true;
+	
+    // Walking animations (Enemy)
+	kuribo.animations.add('walk', [0, 1], 5, true);
+    //---------------------------------------------------------------
+    
+    //blockie
+	var finalblock = platforms.create(3015, game.world.height - 110, 'block');
+	finalblock.body.immovable = true;
+    */
+
+    // Scroll Camera
+	game.camera.follow(player);
+        
+        }//ends create
+
+    function update() {
+
+		//Collision detection
+        game.physics.arcade.collide(player, platforms);
+        game.physics.arcade.collide(enemies, platforms);
+        game.physics.arcade.collide(player, enemies);
+
+        if (game.physics.arcade.collide(player, enemies)) {
+            cuca.kill();
+        }
+        //------------------------------------------------
+        //Hay que agregar un collider para cada enemigo con el personaje y las plataformas
+        //Seguro que hay una manera de encargarle a una clase que haga esto
+
+        //Ejemplo: Colisión entre dos enemigos 
+        /*
+        if (game.physics.arcade.collide(kuribo, kuribo2))
+        {
+            kuribo.body.velocity.x = kuribo.body.velocity.x * (-1);
+            kuribo2.body.velocity.x = kuribo2.body.velocity.x * (-1);
+        }
+        
+        //Ejemplo: colisión jugador con enemigo, mario-style.
+        if (game.physics.arcade.collide(kuribo, player)) {
+            if (kuribo.body.touching.up) {
+                player.body.velocity.y = -200;
+                kuribo.kill();
+            }
+            else {
+                player.kill();
+            }
+        }
+        
+        
+        //Ejemplo: colisión jugador con item
+            if (game.physics.arcade.collide(coin1, player)) {
+                coin1.kill();
+                //escriba comportamiento item
+            }
+        */
+      
+        //Crear controles
+        cursors = game.input.keyboard.createCursorKeys();
+
+        player.body.velocity.x = 0;
+
+        //Ejemplo: movimiento de enemigo, Mario-Style
+        /*
+        kuribo.body.velocity.x = -150;
+        kuribo.animations.play('walk');
+        */
+
+        if (cursors.left.isDown) {
+            player.body.velocity.x = -300;
+            player.animations.play('left');
+
+            //fija la animación del personaje dando un salto a la izquierda
+            if (player.body.touching.down == false)
+            {
+                player.animations.stop();
+                player.frame = 7;
+            }
+        }
+        else if (cursors.right.isDown) {
+            player.body.velocity.x = 300;
+            player.animations.play('right');
+
+            //fija la animación del personaje dando un salto a la derecha
+            if (player.body.touching.down == false) {
+                player.animations.stop();
+                player.frame = 6;
+            }
+
+        }
+        else {
+            if (player.body.touching.down) {
+                player.animations.stop();
+                player.frame = 3;
+            }
+        }
+
+        if (cursors.up.isDown && player.body.touching.down)
+        {
+            player.body.velocity.y = -650;
+            if (player.body.touching.down == false) {
+                player.animations.stop();
+                player.frame = 7;
+            }
+        }
+
+	}//ends update
+
+    /* Nevermind this part of my script :P
+    function render() {
+
+        game.debug.cameraInfo(game.camera, 32, 32);
+        game.debug.spriteCoords(player, 32, 500);
+
+    }//ends render
+    */
+    </script>
+
+    </body>
+</html>
